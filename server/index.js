@@ -28,7 +28,7 @@ app.post('/api/try-on', async (req, res) => {
     }
 
     const payload = {
-      model: 'aitryon-plus',
+      model: 'aitryon',
       input: {
         person_image_base64,
         top_garment_base64,

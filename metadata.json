@@ -1,0 +1,7 @@
+{
+  "name": "AI Virtual Stylist - Smart Try-On",
+  "description": "A high-end virtual fashion assistant that allows users to try on clothes using preset models or their own photos, set in various preset or custom scenarios using Gemini's image generation and editing capabilities.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

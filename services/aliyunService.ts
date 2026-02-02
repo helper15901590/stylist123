@@ -30,8 +30,8 @@ export class AliyunStylistService {
         },
         body: JSON.stringify({
           person_image_base64: personBase64,
-          top_garment_base64,
-          bottom_garment_base64,
+          top_garment_base64: clothingItems['TOP'] || clothingItems['OUTERWEAR'],
+          bottom_garment_base64: clothingItems['BOTTOM'],
         }),
       });
 

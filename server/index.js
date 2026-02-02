@@ -22,18 +22,52 @@ const API_BASE_URL = 'https://dashscope.aliyuncs.com/api/v1/services/aigc/image2
 // 提交试衣任务
 app.post('/api/try-on', async (req, res) => {
   try {
-    const { person_image_base64, top_garment_base64, bottom_garment_base64 } = req.body;
+    let { person_image_base64, top_garment_base64, bottom_garment_base64 } = req.body;
 
     if (!person_image_base64) {
       return res.status(400).json({ error: 'Person image is required' });
     }
 
+    // 辅助函数：将 Base64 或本地路径转为公网 URL (通过临时上传)
+    const ensurePublicUrl = async (input) => {
+      if (!input) return undefined;
+      if (input.startsWith('http') && !input.includes('localhost')) return input;
+      
+      try {
+        // 如果是 Base64，先转为 Buffer
+        let buffer;
+        if (input.startsWith('data:image')) {
+          const base64Data = input.split(',')[1];
+          buffer = Buffer.from(base64Data, 'base64');
+        } else {
+          // 如果是相对路径 (如 /models/female.jpg)，尝试读取本地文件
+          // 注意：在 Vercel 上这可能需要特殊处理，这里先处理 Base64
+          return input; 
+        }
+
+        const formData = new FormData();
+        const blob = new Blob([buffer], { type: 'image/jpeg' });
+        formData.append('file', blob, 'image.jpg');
+
+        const uploadRes = await axios.post('https://file.io/?expires=1d', formData);
+        return uploadRes.data.link;
+      } catch (e) {
+        console.error('Upload to file.io failed:', e.message);
+        return input; // 回退
+      }
+    };
+
+    // 转换所有图片为公网 URL
+    const person_url = await ensurePublicUrl(person_image_base64);
+    const top_url = await ensurePublicUrl(top_garment_base64);
+    const bottom_url = await ensurePublicUrl(bottom_garment_base64);
+
     const payload = {
       model: 'aitryon',
       input: {
-        person_image_base64,
-        top_garment_base64,
-        bottom_garment_base64
+        person_image_url: person_url,
+        top_garment_url: top_url,
+        bottom_garment_url: bottom_url
       }
     };
 

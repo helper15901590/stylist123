@@ -150,13 +150,24 @@ const App: React.FC = () => {
 
     try {
       const stylistService = new AliyunStylistService();
-      const getRawBase64 = (dataUrl: string) => dataUrl.split(',')[1];
-      const personBase64 = await urlToBase64(baseImgUrl);
-      const processedClothing: Partial<Record<ClothingCategory, string>> = {};
+      const getRawBase64 = (dataUrl: string) => dataUrl.startsWith('data:') ? dataUrl : `data:image/jpeg;base64,${dataUrl}`;
       
+      let personBase64 = '';
+      if (customModelImage) {
+        personBase64 = customModelImage;
+      } else if (selectedModel) {
+        // 如果是预设模特，且路径是相对的，我们需要转为绝对 URL 才能让后端处理
+        if (selectedModel.imageUrl.startsWith('/')) {
+          personBase64 = window.location.origin + selectedModel.imageUrl;
+        } else {
+          personBase64 = selectedModel.imageUrl;
+        }
+      }
+
+      const processedClothing: Partial<Record<ClothingCategory, string>> = {};
       for (const [cat, url] of Object.entries(clothingImages)) {
         if (url) {
-          processedClothing[cat as ClothingCategory] = getRawBase64(url);
+          processedClothing[cat as ClothingCategory] = url;
         }
       }
 
